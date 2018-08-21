@@ -12,17 +12,17 @@ const config = {
     port: process.env.PORT || 3000,
 
     // Optional: Give your wallet a unique name
-    walletName: `${process.env.USERNAME || 'alice'}_wallet`,
+    walletName: `${process.env.WALLET_NAME || 'alice'}_wallet`,
 
     // Optional: Give your pool config a unique name
     poolName: process.env.POOL_NAME || 'pool1',
 
     // This information is used to issue your "Government ID"
     userInformation: {
-        name: process.env.NAME || 'Alice Garcia',
-        email: process.env.EMAIL || 'alice@faber.edu',
+        name: process.env.NAME || 'Bipin Soni',
+        email: process.env.EMAIL || 'utopy.bot@gmail.com',
         tax_id: process.env.TAX_ID || '123-45-6789',
-        username: process.env.USERNAME || 'alice',
+        username: process.env.USERNAME || 'bipin',
         password: process.env.PASSWORD || '123'
     },
 
