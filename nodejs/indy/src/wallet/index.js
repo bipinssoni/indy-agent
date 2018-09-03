@@ -28,3 +28,9 @@ exports.setup = async function () {
         { key: config.userInformation.password }
     );
 };
+
+    wallet = await sdk.openWallet(
+        { id: config.walletName },
+        { key: config.userInformation.password }
+    );
+};
