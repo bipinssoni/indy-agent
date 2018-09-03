@@ -14,8 +14,8 @@ exports.createDid = async function (didInfoParam) {
     return await sdk.createAndStoreMyDid(await indy.wallet.get(), didInfo);
 };
 
-exports.getEndpointDid = async function() {
-    if(!endpointDid) {
+exports.getEndpointDid = async function () {
+    if (!endpointDid) {
         let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
         for (let didinfo of dids) {
             let meta = JSON.parse(didinfo.metadata);
@@ -23,7 +23,7 @@ exports.getEndpointDid = async function() {
                 endpointDid = didinfo.did;
             }
         }
-        if(!endpointDid) {
+        if (!endpointDid) {
             await exports.createEndpointDid();
         }
     }
@@ -81,9 +81,10 @@ exports.getTheirEndpointDid = async function (theirDid) {
 async function setupSteward() {
     let stewardWalletName = `stewardWalletFor:${config.walletName}`;
     try {
-        await sdk.createWallet({id: stewardWalletName}, {key: 'whatever'});
+        //await sdk.createWallet({id: stewardWalletName}, {key: 'whatever'});
+        await sdk.createWallet({ id: stewardWalletName }, { key: config.userInformation.password });
     } catch (e) {
-        if (e.message !== 'WalletAlreadyExistsError') {
+        if (e.message !== "WalletAlreadyExistsError") {
             console.warn('create wallet failed with message: ' + e.message);
             throw e;
         }
@@ -91,10 +92,16 @@ async function setupSteward() {
         console.info('wallet already exist, try to open wallet');
     }
 
+    // stewardWallet = await sdk.openWallet(
+    //     {id: stewardWalletName},
+    //     {key: 'whatever'}
+    // );
+
     stewardWallet = await sdk.openWallet(
-        {id: stewardWalletName},
-        {key: 'whatever'}
+        { id: stewardWalletName },
+        { key: config.userInformation.password }
     );
+
 
     let stewardDidInfo = {
         'seed': '000000000000000000000000Steward1'
@@ -112,7 +119,7 @@ async function issueGovernmentIdCredential() {
     let govIdSchemaId = `${stewardDid}:2:${schemaName}:${schemaVersion}`;
     try {
         govIdSchema = await indy.issuer.getSchema(govIdSchemaId);
-    } catch(e) {
+    } catch (e) {
         [govIdSchemaId, govIdSchema] = await sdk.issuerCreateSchema(stewardDid, schemaName, schemaVersion, [
             'name',
             'email',
@@ -126,7 +133,7 @@ async function issueGovernmentIdCredential() {
     let govIdCredDef;
     try {
         govIdCredDef = await indy.issuer.getCredDef(await indy.pool.get(), await indy.did.getEndpointDid(), `blah`);
-    } catch(e) {
+    } catch (e) {
         [govIdCredDefId, govIdCredDef] = await sdk.issuerCreateAndStoreCredentialDef(stewardWallet, stewardDid, govIdSchema, 'GOVID', signatureType, '{"support_revocation": false}');
         await indy.issuer.sendCredDef(await indy.pool.get(), stewardWallet, stewardDid, govIdCredDef);
     }
@@ -139,15 +146,15 @@ async function issueGovernmentIdCredential() {
 
 
     let govIdValues = {
-        name: {"raw": config.userInformation.name, "encoded": indy.credentials.encode(config.userInformation.name)},
-        email: {"raw": config.userInformation.email, "encoded": indy.credentials.encode(config.userInformation.email)},
-        tax_id: {"raw": config.userInformation.tax_id, "encoded": indy.credentials.encode(config.userInformation.tax_id)},
+        name: { "raw": config.userInformation.name, "encoded": indy.credentials.encode(config.userInformation.name) },
+        email: { "raw": config.userInformation.email, "encoded": indy.credentials.encode(config.userInformation.email) },
+        tax_id: { "raw": config.userInformation.tax_id, "encoded": indy.credentials.encode(config.userInformation.tax_id) },
     };
 
     let [govIdCredential] = await sdk.issuerCreateCredential(stewardWallet, govIdCredOffer, govIdCredRequest, govIdValues);
     let res = await sdk.proverStoreCredential(await indy.wallet.get(), null, govIdRequestMetadata, govIdCredential, govIdCredDef);
 }
 
-exports.getGovIdCredDefId = async function() {
+exports.getGovIdCredDefId = async function () {
     return await exports.getEndpointDidAttribute('govIdCredDefId');
 };
